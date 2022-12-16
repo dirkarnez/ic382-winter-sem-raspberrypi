@@ -19,8 +19,8 @@ const char target_link[] = "base_link";                   // TF pair
 const int ros_update_hz = 1;                              // in Hz
 
 // Robot physical parameters
-const double offset_distance_error = 3.580;                                                     // distance compensation
-const double offset_theta_error = 0.18;                                                         // theta compensation
+const double offset_distance_error = 0;                                                         // distance compensation
+const double offset_theta_error = 0;                                                            // theta compensation
 const double robot_wheel_seperation = 0.465;                                                    // in meter
 const double robot_wheel_radius = 0.065;                                                        // in meter
 const double encoder_per_rotation_m1 = 58;                                                      // encoder value per rotation of motor1 [from 65535 - 65305]
@@ -92,25 +92,32 @@ void EncoderCallback(const geometry_msgs::Vector3::ConstPtr &encoder_ticks)
     printf("dm1: %f | dm2: %f | dtheta: %f\r\n", dm1, dm2, dtheta);
 
     // Force compensate two motor
-    dm1 = dm1 - 0;
+    dm1 = dm1 - offset_distance_error;
 
     // Calculate center turning curve
-    dc = (dm2 + dm1) * 0.5;
+    dc = (dm1 - dm2) * 0.5;
 
     // Calculate orientation
-    printf("dm1-dm2 = %f \r\n", (dm1 - dm2));
-    dtheta = (dm2 - dm1)/ robot_wheel_seperation;
+    printf("dc : %f | dm1-dm2: %f\r\n", dc, dm1 - dm2);
+
+    dtheta = (dm2 + dm1) / robot_wheel_seperation;
 
     // Force compensate orientation
-    dtheta = dtheta - 0;
-
+    dtheta = dtheta - offset_theta_error;
+    //
     // Calculate seperate distance
     // *1.1 is only for speed up the visualization
     dx = dc * cos(theta);
     dy = dc * sin(theta);
 
     // Handle angular z polarity
-    (angular_z < 0) ? dtheta = abs(dtheta) *-1 : dtheta = abs(dtheta);
+    if (angular_z < 0)
+        dtheta = abs(dtheta) * -1;
+    else if (angular_z > 0)
+        dtheta = abs(dtheta);
+    else
+        dtheta = dtheta;
+    //(angular_z < 0) ? dtheta = abs(dtheta) *-1 : dtheta = abs(dtheta);
     // Handle linear x polarity
     if (linear_x < 0)
     {
@@ -120,7 +127,7 @@ void EncoderCallback(const geometry_msgs::Vector3::ConstPtr &encoder_ticks)
 
     printf("dx: %f | dy: %f | theta: %f\r\n", dx, dy, theta);
 
-    // Update odometry data
+    // Update odometry dat
     if (encoder_ticks->x != _x_tick)
         (dx != 0) ? x += dx : x = x;
 
@@ -150,7 +157,7 @@ int main(int argc, char **argv)
     tf::TransformBroadcaster odom_broadcaster;
     ros::Rate r(ros_update_hz);
     printf("Encoder To Odom Transformation started!\r\n");
-
+    printf("!!!!!!!!!!??????\r\n");
     // Publish loop
     while (nh.ok())
     {
