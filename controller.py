@@ -31,8 +31,8 @@ speed = Twist()
 r = rospy.Rate(4)
 
 POINTS = (Point(x = 0, y = 0),Point(x = 2, y = 0),Point(x = 2, y = 2))
-ROTATE_SPEED = 0.7
-LINEAR_SPEED = 0.40
+ROTATE_SPEED = 0.69
+LINEAR_SPEED = 0.4
 """ goal = Point()	#set goal point
 goal.x = 5
 goal.y = 5 """
@@ -81,10 +81,7 @@ while not rospy.is_shutdown():
 			step = 0
 			state +=1
 	elif state == 5:
-		pub.publish(speed)
-		raise KeyboardInterrupt		
-	
-	
+		raise KeyboardInterrupt
 
 	step += 1
 	""" # speed.angular.z: +ve means CLOCKWISE, -ve means ANTICLOCK
